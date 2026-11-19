@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bruchturm</title>
+<style>
+:root{
+  --bg:#161927; --panel:#232740; --panel2:#2d3252; --line:#3d4470;
+  --text:#eef0f8; --muted:#a3a9c4;
+  --atk:#e0675a; --def:#4f9be0; --skill:#a07be8; --quiz:#e6b94a;
+  --good:#5cc98a; --bad:#e0675a; --kern:#f2d16b;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:radial-gradient(ellipse at top,#262b4a 0%,var(--bg) 60%);color:var(--text);
+  font-family:system-ui,"Segoe UI",Roboto,sans-serif;min-height:100vh;font-size:16px}
+button{font:inherit;color:inherit;cursor:pointer}
+#app{max-width:1040px;margin:0 auto;padding:12px 16px 40px}
+h1{font-size:2.4rem;margin:.2em 0 0;letter-spacing:.02em}
+h2{margin:.4em 0}
+.muted{color:var(--muted)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:.6em 1.1em}
+.btn:hover{border-color:#6c76b8}
+.btn.primary{background:#4a56a8;border-color:#6c79d4;font-weight:600}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* Brüche */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;
+  font-size:.78em;line-height:1.05;margin:0 .06em}
+.fr .nu{border-bottom:.09em solid currentColor;padding:0 .14em}
+.fr .de{padding:0 .14em}
+
+/* Topbar */
+.top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;background:var(--panel);
+  border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin-bottom:12px}
+.top .sp{flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px}
+.progress{display:flex;gap:4px}
+.progress i{width:14px;height:14px;border-radius:4px;background:var(--panel2);display:block}
+.progress i.done{background:#6c79d4}.progress i.now{background:var(--kern)}
+
+/* Arena */
+.arena{display:grid;grid-template-columns:1fr minmax(200px,260px) 1fr;gap:12px;align-items:stretch}
+.fighter{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;position:relative}
+.fighter .face{font-size:64px;line-height:1.1}
+.fighter .name{font-weight:700;margin:4px 0}
+.hp{height:16px;background:#14162a;border-radius:8px;overflow:hidden;margin:6px 0 4px;border:1px solid var(--line)}
+.hp>div{height:100%;background:linear-gradient(90deg,#c84b4b,#e07a5a);transition:width .3s}
+.hptext{font-size:1.05rem;min-height:1.6em}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px;min-height:28px}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:.95rem}
+.chip.block{border-color:var(--def)}
+.intent{margin-top:8px;background:#3a2330;border:1px solid #7a3b4b;border-radius:10px;padding:8px;font-size:1.15rem}
+.intent.def{background:#1f2f45;border-color:#3d6a9e}
+.intent small{display:block;color:var(--muted);font-size:.75rem;margin-bottom:2px}
+.reveal{color:var(--kern)}
+.kern{background:var(--panel);border:2px dashed #6b6331;border-radius:14px;padding:12px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.kern .t{font-size:2rem;color:var(--kern);font-weight:700}
+.kern .s{font-size:1.25rem}
+.kern.hit{border-style:solid;border-color:var(--kern);box-shadow:0 0 22px #f2d16b66}
+.kern.over .s{color:var(--bad)}
+.kern small{color:var(--muted)}
+
+.controls{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;margin:14px 0 8px}
+.energy{font-size:1.3rem;font-weight:700;background:#3b3415;border:1px solid #8a7a2c;border-radius:999px;padding:4px 14px}
+
+/* Karten */
+.hand{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:190px}
+.card{width:132px;min-height:184px;background:linear-gradient(180deg,#2f3456,#252946);border:2px solid var(--line);
+  border-top:6px solid var(--c);border-radius:12px;padding:8px 8px 6px;display:flex;flex-direction:column;align-items:center;
+  text-align:center;position:relative;transition:transform .12s, box-shadow .12s}
+.card:hover{transform:translateY(-6px);box-shadow:0 8px 20px #0007}
+.card.off{opacity:.45}
+.card.off:hover{transform:none;box-shadow:none}
+.t-atk{--c:var(--atk)}.t-def{--c:var(--def)}.t-skill{--c:var(--skill)}.t-quiz{--c:var(--quiz)}
+.card .cost{position:absolute;top:-12px;left:-10px;width:30px;height:30px;border-radius:50%;background:#3b3415;
+  border:2px solid #c9ad3c;font-weight:700;display:flex;align-items:center;justify-content:center}
+.card .cname{font-weight:700;font-size:.92rem;margin-top:4px}
+.card .cval{font-size:1.7rem;font-weight:700;color:var(--c);margin:8px 0 6px;min-height:2.2em;display:flex;align-items:center}
+.card .cdesc{font-size:.8rem;color:#cfd3ea;flex:1}
+.card .ctype{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+
+.log{margin-top:16px;background:#12142233;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.92rem;max-height:150px;overflow:auto}
+.log div{padding:2px 0;border-bottom:1px solid #ffffff0d}
+
+/* Bildschirme */
+.center{text-align:center}
+.choices{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin:18px 0}
+.choice{width:220px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center}
+.choice:hover{border-color:#6c79d4;transform:translateY(-3px)}
+.choice .big{font-size:48px}
+.choice b{display:block;margin:6px 0;font-size:1.1rem}
+.levels{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:16px 0}
+.level{width:240px;background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:14px;text-align:left}
+.level.sel{border-color:var(--kern);box-shadow:0 0 14px #f2d16b44}
+.level b{font-size:1.1rem}
+.rules{max-width:720px;margin:10px auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 20px;text-align:left;line-height:1.5}
+.stats{max-width:520px;margin:12px auto;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 20px}
+.stats table{width:100%;border-collapse:collapse}
+.stats td{padding:4px 0;border-bottom:1px solid #ffffff12}
+.stats td:last-child{text-align:right}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;max-width:560px;width:100%;max-height:92vh;overflow:auto}
+.box h3{margin:.1em 0 .6em}
+.qprompt{font-size:1.2rem;line-height:1.6;text-align:center}
+.qprompt .bigq{font-size:1.9rem;margin:10px 0}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.opt{background:var(--panel2);border:2px solid var(--line);border-radius:10px;padding:12px;font-size:1.35rem;min-height:64px}
+.opt:hover:not(:disabled){border-color:#6c79d4}
+.opt.ok{border-color:var(--good);background:#1f3d2d}
+.opt.no{border-color:var(--bad);background:#43232a}
+.opt:disabled{cursor:default}
+.explain{background:#1b1e33;border-left:4px solid var(--kern);border-radius:8px;padding:10px 12px;line-height:1.7;margin-top:8px}
+.deckgrid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+
+/* Schwebetexte */
+.float{position:fixed;pointer-events:none;font-weight:800;font-size:1.6rem;z-index:60;animation:up 1.1s ease-out forwards;
+  text-shadow:0 2px 6px #000}
+.float.dmg{color:#ff8a7a}.float.blk{color:#8cc4ff}.float.kern{color:var(--kern);font-size:1.9rem}
+@keyframes up{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-70px)}}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+@media (max-width:720px){
+  .arena{grid-template-columns:1fr 1fr}
+  .kern{grid-column:1 / -1;order:3}
+  .card{width:104px;min-height:160px}
+  .card .cval{font-size:1.4rem}
+  .fighter .face{font-size:48px}
+  .opts{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+<script>
+'use strict';
+/* =========================================================
+   Bruchturm – ein Deckbau-Lernspiel zu rationalen Zahlen
+   ========================================================= */
+
+/* ---------- Exakte Bruchrechnung ---------- */
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const lcm=(a,b)=>a/gcd(a,b)*b;
+class Q{
+  constructor(n,d=1){
+    if(d===0) throw new Error('Division durch 0');
+    if(d<0){n=-n;d=-d}
+    const g=gcd(n,d)||1; this.n=n/g; this.d=d/g;
+  }
+  add(o){o=toQ(o);return new Q(this.n*o.d+o.n*this.d,this.d*o.d)}
+  sub(o){o=toQ(o);return new Q(this.n*o.d-o.n*this.d,this.d*o.d)}
+  mul(o){o=toQ(o);return new Q(this.n*o.n,this.d*o.d)}
+  div(o){o=toQ(o);return new Q(this.n*o.d,this.d*o.n)}
+  neg(){return new Q(-this.n,this.d)}
+  cmp(o){o=toQ(o);return Math.sign(this.n*o.d-o.n*this.d)}
+  eq(o){return this.cmp(o)===0}
+  isInt(){return this.d===1}
+  get v(){return this.n/this.d}
+}
+const toQ=x=>x instanceof Q?x:new Q(x,1);
+const q=(n,d=1)=>new Q(n,d);
+const ZERO=q(0);
+const minQ=(a,b)=>a.cmp(b)<=0?a:b;
+const max0=x=>x.cmp(0)<0?ZERO:x;
+
+/* ---------- Darstellung ---------- */
+const MINUS='−';
+function isTerm(x){let d=toQ(x).d;while(d%2===0)d/=2;while(d%5===0)d/=5;return d===1}
+function decStr(x){
+  x=toQ(x); let k=0,p=1; while(p%x.d!==0){p*=10;k++}
+  let s=String(Math.abs(x.n)*(p/x.d));
+  if(k>0){s=s.padStart(k+1,'0');s=s.slice(0,-k)+','+s.slice(-k)}
+  return (x.n<0?MINUS:'')+s;
+}
+const fracHTML=(n,d)=>`<span class="fr"><span class="nu">${n}</span><span class="de">${d}</span></span>`;
+/* Bruch ohne Kürzen (für Rechenwege) */
+function fracRaw(n,d){ if(d===1) return (n<0?MINUS:'')+Math.abs(n); return (n<0?MINUS:'')+fracHTML(Math.abs(n),d) }
+/* style: frac | mixed | dec | pct */
+function fmt(x,style='frac'){
+  x=toQ(x);
+  const sg=x.n<0?MINUS:'', a=Math.abs(x.n), d=x.d;
+  if(style==='pct' && isTerm(x.mul(100))) return decStr(x.mul(100))+'&nbsp;%';
+  if(style==='dec' && isTerm(x)) return decStr(x);
+  if(d===1) return sg+a;
+  if(style==='mixed' && a>d) return sg+Math.floor(a/d)+'&#8239;'+fracHTML(a%d,d);
+  return sg+fracHTML(a,d);
+}
+/* Darstellung passend zur Stufe: Stufe 1 zeigt nur Brüche */
+function disp(x,style='frac'){
+  if(G.level===1 && (style==='dec'||style==='pct')) style='mixed';
+  return fmt(x,style);
+}
+const paren=(x,html)=>toQ(x).n<0?`(${html})`:html;
+function styleFor(x){
+  const o=['frac'];
+  if(G.level>=2 && isTerm(x)){ o.push('dec','dec'); if(x.cmp(0)>0 && x.cmp(2)<=0 && isTerm(x.mul(100))) o.push('pct') }
+  return pick(o);
+}
+
+/* ---------- Zufall ---------- */
+const rint=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function randQ({dens=[2,3,4,5,6,8,10],max=2,neg=false,nonInt=true}={}){
+  for(let t=0;t<100;t++){
+    const d=pick(dens); let n=rint(1,max*d);
+    if(neg && Math.random()<.5) n=-n;
+    const x=q(n,d); if(nonInt && x.isInt()) continue; return x;
+  }
+  return q(1,2);
+}
+
+/* ---------- Karten ---------- */
+const CARDS={
+  stich:      {name:'Stich',type:'atk',cost:1,val:q(1,2),style:'frac'},
+  schnitt:    {name:'Schnitt',type:'atk',cost:1,val:q(3,4),style:'frac'},
+  wucht:      {name:'Wucht',type:'atk',cost:1,val:q(5,4),style:'mixed'},
+  drittel:    {name:'Drittelklinge',type:'atk',cost:0,val:q(1,3),style:'frac'},
+  zweidrittel:{name:'Zweidrittel-Hieb',type:'atk',cost:1,val:q(2,3),style:'frac',draw:1},
+  doppelstich:{name:'Doppelstich',type:'atk',cost:1,val:q(2,5),hits:2,style:'dec'},
+  fuenftel:   {name:'Fünftelhagel',type:'atk',cost:1,val:q(1,5),hits:4,style:'frac'},
+  schwerhieb: {name:'Schwerhieb',type:'atk',cost:2,val:q(9,4),style:'mixed'},
+  anteil:     {name:'Anteil',type:'atk',cost:1,pct:q(1,4),
+               big:()=>disp(q(1,4),'pct'),
+               desc:()=>`Schaden: ${disp(q(1,4),'pct')} der aktuellen LP des Gegners.`},
+  ergaenzung: {name:'Ergänzung',type:'atk',cost:1,
+               big:()=>'🎯 − Σ',
+               desc:()=>'Schaden = Kern minus Summe. Füllt genau bis zum Kern auf.'},
+  deckung:    {name:'Deckung',type:'def',cost:1,val:q(1),style:'frac'},
+  splitter:   {name:'Splitterschild',type:'def',cost:0,val:q(1,2),style:'frac'},
+  bollwerk:   {name:'Bollwerk',type:'def',cost:2,val:q(5,2),style:'dec'},
+  verdoppler: {name:'Verdoppler',type:'skill',cost:1,mult:q(2),style:'frac'},
+  anderthalb: {name:'Anderthalbfach',type:'skill',cost:0,mult:q(3,2),style:'dec'},
+  halbieren:  {name:'Halbieren',type:'skill',cost:1,
+               big:()=>'× '+fmt(q(1,2)),
+               desc:()=>`Der nächste Angriff des Gegners wird mit ${fmt(q(1,2))} multipliziert.`},
+  kehrwert:   {name:'Kehrwert',type:'skill',cost:0,
+               big:()=>`${fracHTML(1,'🎯')}`,
+               desc:()=>'Der Kern wird zu seinem Kehrwert. Ziehe 1 Karte.'},
+  korrektur:  {name:'Korrektur',type:'skill',cost:0,
+               big:()=>'Σ '+MINUS+' '+fmt(q(1,4)),
+               desc:()=>`Ziehe ${fmt(q(1,4))} von der Summe ab. Ziehe 1 Karte.`},
+  rechenblitz:{name:'Rechenblitz',type:'quiz',cost:1,
+               big:()=>'❓⚔️',
+               desc:()=>`Löse eine Aufgabe. Richtig: ${fmt(q(3,2),'mixed')} Schaden. Falsch: ${fmt(q(1,4))}.`},
+  denkschild: {name:'Denkschild',type:'quiz',cost:1,
+               big:()=>'❓🛡️',
+               desc:()=>`Löse eine Aufgabe. Richtig: 2 Block + 1 Karte. Falsch: ${fmt(q(1,2))} Block.`},
+  geistesblitz:{name:'Geistesblitz',type:'quiz',cost:0,
+               big:()=>'❓⚡',
+               desc:()=>'Löse eine Aufgabe. Richtig: +1 Energie und 1 Karte.'},
+};
+const TYPE_LBL={atk:'Angriff',def:'Abwehr',skill:'Fertigkeit',quiz:'Rechenkarte'};
+const STARTER=['stich','stich','schnitt','schnitt','wucht','deckung','deckung','deckung','rechenblitz','denkschild'];
+const POOL=['drittel','zweidrittel','doppelstich','fuenftel','schwerhieb','anteil','ergaenzung','splitter','bollwerk',
+  'verdoppler','anderthalb','halbieren','kehrwert','korrektur','rechenblitz','denkschild','geistesblitz','wucht','schnitt'];
+
+function cardBig(d){
+  if(d.big) return d.big();
+  if(d.val){ const v=disp(d.val,d.style); return d.hits?`${d.hits}&#8239;×&#8239;${v}`:v }
+  if(d.mult) return '×&#8239;'+disp(d.mult,d.style);
+  return '?';
+}
+function cardDesc(d){
+  if(d.desc) return d.desc();
+  if(d.type==='atk'){
+    const v=disp(d.val,d.style);
+    return (d.hits?`Verursache ${d.hits}-mal ${v} Schaden.`:`Verursache ${v} Schaden.`)+(d.draw?' Ziehe 1 Karte.':'');
+  }
+  if(d.type==='def') return `Erhalte ${disp(d.val,d.style)} Block.`;
+  if(d.mult) return `Die nächste Angriffskarte macht ${disp(d.mult,d.style)}-fachen Schaden.`;
+  return '';
+}
+let uidCounter=0;
+const mkCard=id=>({uid:++uidCounter,id});
+function cardHTML(id,attrs='',off=false){
+  const d=CARDS[id];
+  return `<button class="card t-${d.type}${off?' off':''}" ${attrs}>
+    <div class="cost">${d.cost}</div>
+    <div class="cname">${d.name}</div>
+    <div class="cval">${cardBig(d)}</div>
+    <div class="cdesc">${cardDesc(d)}</div>
+    <div class="ctype">${TYPE_LBL[d.type]}</div></button>`;
+}
+
+/* ---------- Gegner ---------- */
+const V=(...pairs)=>pairs.map(([n,d])=>q(n,d||1));
+const ENEMIES={
+  bruchling:{name:'Bruchling',face:'🐸',hp:q(5),moves:[{t:'atk',vals:V([1,2],[3,4],[1])},{t:'atk',vals:V([3,4],[1],[5,4])}]},
+  dezimotte:{name:'Dezimotte',face:'🦋',hp:q(9,2),moves:[{t:'atk',vals:V([3,5],[4,5])},{t:'def',vals:V([1,2],[1])},{t:'atk',vals:V([6,5],[1])}]},
+  natter:   {name:'Nenner-Natter',face:'🐍',hp:q(6),moves:[{t:'atk',vals:V([2,3],[5,6])},{t:'atk',vals:V([7,6],[4,3])},{t:'def',vals:V([1,2],[2,3])}]},
+  pilz:     {name:'Prozentpilz',face:'🍄',hp:q(11,2),moves:[{t:'def',vals:V([1],[3,2])},{t:'atk',vals:V([3,2],[5,4])}]},
+  krake:    {name:'Kehrwert-Krake',face:'🐙',hp:q(10),elite:true,moves:[{t:'atk',vals:V([3,2],[7,4])},{t:'def',vals:V([1],[3,2])},{t:'atk',vals:V([2],[9,4])}]},
+  golem:    {name:'Teiler-Golem',face:'🗿',hp:q(12),elite:true,moves:[{t:'def',vals:V([2])},{t:'atk',vals:V([5,2])},{t:'atk',vals:V([1],[5,4])}]},
+  boss:     {name:'Der Große Hauptnenner',face:'🐲',hp:q(18),boss:true,
+             moves:[{t:'def',vals:V([3,2])},{t:'atk',vals:V([5,2],[11,4])},{t:'atk',vals:V([3,2],[7,4])},{t:'atk',vals:V([3])}]},
+};
+const NORMALS=['bruchling','dezimotte','natter','pilz'], ELITES=['krake','golem'];
+
+function makeEnemy(key){
+  const d=ENEMIES[key];
+  const hp=d.boss?d.hp:d.hp.add(q(G.floor-1,2));
+  const e={...d,key,hp,maxHp:hp,block:ZERO,turn:0,bonus:G.floor>=6&&!d.boss?q(1,4):ZERO};
+  e.intent=nextIntent(e);
+  return e;
+}
+function nextIntent(e){
+  const mv=e.moves[e.turn%e.moves.length];
+  let v=pick(mv.vals); if(mv.t==='atk') v=v.add(e.bonus);
+  return {type:mv.t,value:v,expr:exprHTML(v)};
+}
+
+/* Absicht als Rechenausdruck, dessen Wert = v */
+const NICE_D=[2,3,4,5,6,8,10];
+function termHTML(x){
+  const s=(G.level>=2 && isTerm(x) && Math.random()<.45)?'dec':(Math.abs(x.v)>1?'mixed':'frac');
+  return fmt(x,s);
+}
+function exprHTML(v){
+  const L=G.level, T=[];
+  T.push(()=>{ for(let t=0;t<30;t++){const d=pick(NICE_D);const a=q(rint(1,2*d),d);const b=v.sub(a);
+    if(b.cmp(0)>0 && b.d<=12) return `${termHTML(a)} + ${termHTML(b)}`} return null });
+  T.push(()=>{ const ks=[2,3,4].filter(k=>v.div(k).d<=12); if(!ks.length) return null;
+    const k=pick(ks); return `${k} · ${termHTML(v.div(k))}` });
+  T.push(()=>{ for(let t=0;t<30;t++){const d=pick(NICE_D);const b=q(rint(1,d),d);const a=v.add(b);
+    if(a.d<=12) return `${termHTML(a)} ${MINUS} ${termHTML(b)}`} return null });
+  if(L>=2) T.push(()=>{ const ns=[2,3,4,5,6,8,10,12,20].filter(n=>{const p=v.div(n).mul(100);return p.isInt()&&p.v>0&&p.v<=150});
+    if(!ns.length) return null; const n=pick(ns); return `${fmt(v.div(n),'pct')} von ${n}` });
+  if(L>=3){
+    T.push(()=>{ for(let t=0;t<30;t++){const d=pick(NICE_D);const b=q(rint(1,d),d);const a=v.sub(b);
+      if(a.d<=12) return `${termHTML(a)} ${MINUS} (${MINUS}${termHTML(b)})`} return null });
+    T.push(()=>{ for(let t=0;t<30;t++){const d=pick(NICE_D);const b=q(-rint(1,d),d);const a=v.sub(b);
+      if(a.d<=12) return `${termHTML(a)} + (${termHTML(b)})`} return null });
+  }
+  for(const f of shuffle(T)){ const r=f(); if(r) return r }
+  return fmt(v,'mixed');
+}
+
+/* ---------- Aufgaben (Rechenkarten, Rätselraum) ---------- */
+const TOPIC={compare:'Vergleichen',add:'Addieren',sub:'Subtrahieren',mul:'Multiplizieren',div:'Dividieren',
+  convert:'Umwandeln (Bruch/Dezimal/Prozent)',expand:'Kürzen & Erweitern',numberline:'Zahlenstrahl'};
+/* Optionen aus Werten bauen: richtig + Ablenker, doppelte Werte werden entfernt */
+function valueOptions(correct,distract,style){
+  const vals=[correct];
+  for(const x of distract){ if(x && !vals.some(v=>v.eq(x))) vals.push(x); if(vals.length===4) break }
+  let guard=0;
+  while(vals.length<4 && guard++<200){
+    const x=correct.add(q(rint(-3,3)||1,pick([correct.d,correct.d*2,4,6])));
+    if((G.level<3 && x.cmp(0)<=0)) continue;
+    if(!vals.some(v=>v.eq(x))) vals.push(x);
+  }
+  const order=shuffle(vals.map((v,i)=>({v,ok:i===0})));
+  const sf=typeof style==='function'?style:()=>style;
+  return {options:order.map(o=>fmt(o.v,sf(o.v))),correct:order.findIndex(o=>o.ok)};
+}
+function rawForm(x,L){return fracRaw(x.n*(L/x.d),L)}
+
+const QUIZ={
+  compare(){
+    const neg=G.level>=3;
+    const a=randQ({neg});
+    let b;
+    if(Math.random()<.15){ b=a } else { do{ b=Math.random()<.5?a.add(q(pick([-1,1]),pick([4,5,6,8,10]))):randQ({neg}) }while(b.eq(a)||(!neg&&b.cmp(0)<=0)) }
+    let sa=styleFor(a), sb=styleFor(b);
+    if(G.level>=2 && sa===sb && isTerm(b)) sb=sa==='frac'?'dec':'frac';
+    const A=fmt(a,sa), c=a.cmp(b);
+    let B=fmt(b,sb);
+    if(B===A){ const k=rint(2,4); B=fracRaw(b.n*k,b.d*k) }   // gleicher Wert, andere Schreibweise
+    let ex;
+    if(isTerm(a)&&isTerm(b)) ex=`Als Dezimalzahlen: ${A} = ${decStr(a)} und ${B} = ${decStr(b)}.`;
+    else { const L=lcm(a.d,b.d); ex=`Auf den gemeinsamen Nenner ${L} bringen: ${A} = ${rawForm(a,L)} und ${B} = ${rawForm(b,L)}.` }
+    ex+=` Also: ${A} ${c>0?'&gt;':c<0?'&lt;':'='} ${B}.`;
+    if(neg && (a.n<0||b.n<0)) ex+=' (Bei negativen Zahlen ist die Zahl größer, die auf dem Zahlenstrahl weiter rechts liegt.)';
+    return {topic:'compare',prompt:`Welche Zahl ist größer?<div class="bigq">${A} &nbsp;oder&nbsp; ${B}</div>`,
+      options:[`${A} ist größer`,`${B} ist größer`,'beide gleich groß'],correct:c>0?0:c<0?1:2,explain:ex};
+  },
+  add(){
+    const neg=G.level>=3&&Math.random()<.6;
+    const a=randQ({neg,max:1}), b=randQ({neg,max:1}), r=a.add(b), L=lcm(a.d,b.d);
+    const dis=[a.d+b.d!==0?q(a.n+b.n,a.d+b.d):null, r.add(q(1,L)), r.sub(q(1,L)), a.mul(b)];
+    const o=valueOptions(r,dis,x=>Math.abs(x.v)>1?'mixed':'frac');
+    const sumN=a.n*(L/a.d)+b.n*(L/b.d);
+    return {topic:'add',prompt:`<div class="bigq">${fmt(a)} + ${paren(b,fmt(b))} = ?</div>`,...o,
+      explain:`Gleichnamig machen (Nenner ${L}): ${rawForm(a,L)} + ${paren(b,rawForm(b,L))} = ${fracRaw(sumN,L)}${(r.d!==L)?' = '+fmt(r,'mixed')+' (gekürzt)':''}. Nur die Zähler werden addiert – der Nenner bleibt!`};
+  },
+  sub(){
+    const neg=G.level>=3&&Math.random()<.6;
+    let a=randQ({neg,max:neg?1:2}), b=randQ({neg,max:1});
+    if(!neg){ if(a.eq(b)) b=b.mul(q(1,2)); if(a.cmp(b)<0) [a,b]=[b,a] }
+    const r=a.sub(b), L=lcm(a.d,b.d);
+    const dis=[a.d!==b.d?q(a.n-b.n,Math.abs(a.d-b.d)):null, b.sub(a), a.add(b), r.add(q(1,L))];
+    const o=valueOptions(r,dis,x=>Math.abs(x.v)>1?'mixed':'frac');
+    const n=a.n*(L/a.d)-b.n*(L/b.d);
+    return {topic:'sub',prompt:`<div class="bigq">${fmt(a)} ${MINUS} ${paren(b,fmt(b))} = ?</div>`,...o,
+      explain:`Gleichnamig machen (Nenner ${L}): ${rawForm(a,L)} ${MINUS} ${paren(b,rawForm(b,L))} = ${fracRaw(n,L)}${(r.d!==L)?' = '+fmt(r,'mixed'):''}.${b.n<0?' Minus eine negative Zahl heißt: plus!':''}`};
+  },
+  mul(){
+    const neg=G.level>=3&&Math.random()<.5;
+    const a=randQ({neg,max:1,dens:[2,3,4,5,6]}), b=randQ({max:2,dens:[2,3,4,5]}), r=a.mul(b);
+    const dis=[q(a.n*b.n,a.d), a.add(b), a.div(b), q(a.n*b.n,a.d+b.d)];
+    const o=valueOptions(r,dis,x=>Math.abs(x.v)>1?'mixed':'frac');
+    return {topic:'mul',prompt:`<div class="bigq">${fmt(a)} · ${fmt(b)} = ?</div>`,...o,
+      explain:`Zähler mal Zähler, Nenner mal Nenner: ${fracRaw(a.n*b.n,a.d*b.d)}${(r.d!==a.d*b.d)?' = '+fmt(r,'mixed')+' (gekürzt)':''}.${a.n<0?' Minus mal Plus ergibt Minus.':''}`};
+  },
+  div(){
+    const neg=Math.random()<.5;
+    const a=randQ({neg,max:1,dens:[2,3,4,5,6]}), b=randQ({max:1,dens:[2,3,4,5]}), r=a.div(b);
+    const dis=[a.mul(b), b.div(a), r.neg(), q(a.n*b.n,a.d*b.d).add(q(1,2))];
+    const o=valueOptions(r,dis,x=>Math.abs(x.v)>1?'mixed':'frac');
+    return {topic:'div',prompt:`<div class="bigq">${fmt(a)} : ${fmt(b)} = ?</div>`,...o,
+      explain:`Durch einen Bruch teilen heißt: mit dem Kehrwert multiplizieren. ${fmt(a)} · ${fracRaw(b.d,b.n)} = ${fracRaw(a.n*b.d,a.d*b.n)}${r.d!==a.d*b.n?' = '+fmt(r,'mixed'):''}.`};
+  },
+  convert(){
+    const x=pick(V([1,2],[1,4],[3,4],[1,5],[2,5],[3,5],[4,5],[1,8],[3,8],[5,8],[1,10],[3,10],[7,10],[9,10],[1,20],[3,20],[6,5],[5,4],[3,2],[7,4]));
+    const mode=pick(['d2f','f2d','p2f','f2p']);
+    const len=String(x.d).length, pw=10**len;
+    const digitsWrong=q(x.n*pw+x.d,pw);          // 3/4 -> 3,4
+    const digitsWrong2=q(x.n*pw+x.d,pw*10);      // 3/4 -> 0,34
+    let k=0,p=1; while(p%x.d!==0){p*=10;k++}
+    const m=x.n*(p/x.d);                         // Ziffern nach dem Komma
+    if(mode==='d2f'){
+      const dis=[m<=40?q(1,m):null, q(m,p/10>=1?p/10:100), x.add(q(1,x.d))];
+      const o=valueOptions(x,dis,v=>Math.abs(v.v)>1?'mixed':'frac');
+      return {topic:'convert',prompt:`Schreibe als Bruch:<div class="bigq">${decStr(x)} = ?</div>`,...o,
+        explain:`${decStr(x)} = ${fracRaw(m,p)}${x.d!==p?' = '+fmt(x)+' (gekürzt)':''}. Die letzte Nachkommastelle gibt den Nenner an (Zehntel, Hundertstel, …).`};
+    }
+    if(mode==='f2d'){
+      const o=valueOptions(x,[digitsWrong,digitsWrong2,x.add(q(1,10))],'dec');
+      return {topic:'convert',prompt:`Schreibe als Dezimalzahl:<div class="bigq">${fmt(x)} = ?</div>`,...o,
+        explain:`Erweitern auf den Nenner ${p}: ${fmt(x)} = ${fracRaw(m,p)} = ${decStr(x)}. (Achtung: ${fmt(x)} ist nicht ${decStr(digitsWrong)}!)`};
+    }
+    const pc=x.mul(100);
+    if(mode==='p2f'){
+      const dis=[pc.isInt()&&pc.v<=40?q(1,pc.v):null, q(pc.n,10*pc.d), x.add(q(1,x.d))];
+      const o=valueOptions(x,dis,v=>Math.abs(v.v)>1?'mixed':'frac');
+      return {topic:'convert',prompt:`Schreibe als Bruch:<div class="bigq">${fmt(x,'pct')} = ?</div>`,...o,
+        explain:`Prozent heißt „von Hundert“: ${fmt(x,'pct')} = ${fracRaw(pc.n,100*pc.d)}${x.d!==100?' = '+fmt(x):''}.`};
+    }
+    const o=valueOptions(x,[q(x.n,100),digitsWrong2,x.add(q(1,10))],'pct');
+    return {topic:'convert',prompt:`Schreibe in Prozent:<div class="bigq">${fmt(x)} = ?</div>`,...o,
+      explain:`Erweitern auf den Nenner 100: ${fmt(x)} = ${fracRaw(pc.n,100*pc.d)} = ${fmt(x,'pct')}.`};
+  },
+  expand(){
+    const x=randQ({max:1,dens:[2,3,4,5,6]}), k=rint(2,4);
+    const shown=fracRaw(x.n*k,x.d*k);
+    const cand=[
+      {html:fracRaw(x.n,x.d),v:x,ok:true},
+      {html:fracRaw(x.n*k,x.d),v:q(x.n*k,x.d)},
+      {html:fracRaw(x.n*k+1,x.d*k+1),v:q(x.n*k+1,x.d*k+1)},
+      {html:fracRaw(x.n+k,x.d+k),v:q(x.n+k,x.d+k)},
+      {html:fracRaw(x.n*k-1,x.d*k),v:q(x.n*k-1,x.d*k)},
+    ];
+    const opts=[cand[0]];
+    for(const c of cand.slice(1)) if(!opts.some(o=>o.v.eq(c.v))&&opts.length<4) opts.push(c);
+    const s=shuffle(opts);
+    return {topic:'expand',prompt:`Welcher Bruch ist genauso groß wie<div class="bigq">${shown} ?</div>`,
+      options:s.map(o=>o.html),correct:s.findIndex(o=>o.ok),
+      explain:`Zähler und Nenner durch ${k} teilen (kürzen): ${shown} = ${fracRaw(x.n,x.d)}. Beim Kürzen und Erweitern ändert sich der Wert nicht – aber man darf nur multiplizieren/teilen, nicht addieren!`};
+  },
+  numberline(){
+    const neg=G.level>=3, lo=neg?-2:0, hi=2, den=pick(neg?[2,3,4,5]:[3,4,5]);
+    const pos=[]; for(let n=lo*den;n<=hi*den;n++) if(n%den!==0) pos.push(q(n,den));
+    const pts=shuffle(pos).slice(0,4).sort((a,b)=>a.cmp(b));
+    const ti=rint(0,3), target=pts[ti], L='ABCD';
+    const W=340, X=v=>20+(v-lo)/(hi-lo)*(W-40);
+    let svg=`<svg viewBox="0 0 ${W} 80" width="100%" style="max-width:420px" font-size="13" fill="currentColor">
+      <line x1="10" y1="50" x2="${W-10}" y2="50" stroke="currentColor" stroke-width="2"/>`;
+    for(let n=lo*den;n<=hi*den;n++){ const x=X(n/den), big=n%den===0;
+      svg+=`<line x1="${x}" y1="${big?40:45}" x2="${x}" y2="${big?60:55}" stroke="currentColor" stroke-width="${big?2:1}"/>`;
+      if(big) svg+=`<text x="${x}" y="76" text-anchor="middle">${n<0?MINUS+(-n/den):n/den}</text>`; }
+    pts.forEach((p,i)=>{ const x=X(p.v);
+      svg+=`<circle cx="${x}" cy="50" r="5" fill="#f2d16b"/><text x="${x}" y="30" text-anchor="middle" font-weight="700" font-size="15">${L[i]}</text>`});
+    svg+='</svg>';
+    const st=styleFor(target);
+    return {topic:'numberline',prompt:`Welcher Punkt liegt bei <b style="font-size:1.4rem">${fmt(target,st)}</b>?<div>${svg}</div>`,
+      options:[...L],correct:ti,
+      explain:`Jede Einheit ist in ${den} gleiche Teile geteilt, ein Teilstrich ist also ${fracRaw(1,den)}. ${fmt(target,st)} = ${fracRaw(target.mul(den).n,den)} liegt bei Punkt ${L[ti]}.`};
+  },
+};
+function genQuiz(){
+  const L=G.level, types=['compare','add','sub','numberline','expand'];
+  if(L>=2) types.push('convert','convert','mul');
+  if(L>=3) types.push('div','compare','add');
+  return QUIZ[pick(types)]();
+}
+function askQuiz(title){
+  return new Promise(res=>{
+    const z=genQuiz();
+    const root=document.getElementById('modal-root');
+    root.innerHTML=`<div class="modal"><div class="box">
+      <h3>${title}</h3>
+      <div class="qprompt">${z.prompt}</div>
+      <div class="opts">${z.options.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>
+      <div id="qfb"></div></div></div>`;
+    root.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.i, ok=i===z.correct;
+      const t=G.stats.topics[z.topic]||(G.stats.topics[z.topic]={ok:0,n:0});
+      t.n++; if(ok) t.ok++;
+      root.querySelectorAll('.opt').forEach((x,j)=>{x.disabled=true; if(j===z.correct)x.classList.add('ok'); else if(j===i)x.classList.add('no')});
+      document.getElementById('qfb').innerHTML=`<div class="explain"><b>${ok?'✅ Richtig!':'❌ Leider falsch.'}</b><br>${z.explain}</div>
+        <div class="center" style="margin-top:12px"><button class="btn primary" id="qok">Weiter</button></div>`;
+      document.getElementById('qok').onclick=()=>{root.innerHTML='';res(ok)};
+    });
+  });
+}
+
+/* ---------- Spielzustand ---------- */
+let G=null;   // Lauf
+let C=null;   // aktueller Kampf
+const MAX_FLOOR=10;
+function newRun(level,help){
+  G={level,help,hp:q(15),maxHp:q(15),deck:STARTER.map(mkCard),floor:0,
+     stats:{topics:{},kern:0,fights:0}};
+  nextFloor();
+}
+
+/* ---------- Kampf ---------- */
+function startCombat(key){
+  C={enemy:null,draw:shuffle(G.deck.slice()),hand:[],discard:[],energy:3,block:ZERO,
+     S:ZERO,T:null,kernHit:false,mult:null,halve:false,busy:false,log:[]};
+  C.enemy=makeEnemy(key);
+  log(`${C.enemy.face} <b>${C.enemy.name}</b> stellt sich dir in den Weg!`);
+  startPlayerTurn();
+}
+function drawCards(n){
+  for(let i=0;i<n;i++){
+    if(!C.draw.length){ if(!C.discard.length) break; C.draw=shuffle(C.discard); C.discard=[] }
+    if(C.hand.length>=10) break;
+    C.hand.push(C.draw.pop());
+  }
+}
+function startPlayerTurn(){
+  C.energy=3; C.block=ZERO; C.S=ZERO; C.kernHit=false;
+  drawCards(5);
+  C.T=makeKern();
+  render();
+}
+/* Kern: Summe einer Auswahl von Angriffskarten auf der Hand, die mit der Energie spielbar ist */
+function makeKern(){
+  const h=C.hand.map(c=>CARDS[c.id]).filter(d=>d.type==='atk'&&d.val);
+  const combos=[];
+  for(let m=1;m<(1<<h.length);m++){
+    let cost=0,sum=ZERO,size=0;
+    h.forEach((d,j)=>{ if(m&(1<<j)){cost+=d.cost;sum=sum.add(d.val.mul(d.hits||1));size++} });
+    if(cost<=C.energy) combos.push({sum,size});
+  }
+  let pool=combos.filter(c=>c.size>=2); if(!pool.length) pool=combos;
+  if(!pool.length) return pick(V([1,2],[3,4],[1],[5,4]));
+  return pick(pool).sum;
+}
+function log(html){ C.log.unshift(html); C.log=C.log.slice(0,30) }
+
+function hitEnemy(dmg,countsForKern){
+  const e=C.enemy, ab=minQ(e.block,dmg);
+  e.block=e.block.sub(ab); e.hp=e.hp.sub(dmg.sub(ab));
+  floatAt('enemy','−'+fmt(dmg,'mixed'),'dmg');
+  if(countsForKern){ C.S=C.S.add(dmg); checkKern() }
+}
+function attack(val,hits=1){
+  const mult=C.mult||q(1); C.mult=null;
+  for(let k=0;k<hits;k++) hitEnemy(val.mul(mult),true);
+}
+function gainBlock(v){ C.block=C.block.add(v); floatAt('player','+'+fmt(v,'mixed')+' 🛡','blk') }
+function checkKern(){
+  if(!C.kernHit && C.T && C.S.eq(C.T)){
+    C.kernHit=true; C.energy+=1; G.stats.kern++;
+    log(`🎯 <b>Kern geknackt!</b> Summe ${fmt(C.S,'mixed')} = Kern. +1 Energie, 1 Bonusschaden.`);
+    setTimeout(()=>floatAt('kern','Volltreffer!','kern'),150);
+    hitEnemy(q(1),false);
+  }
+}
+async function playCard(i){
+  if(!C||C.busy) return;
+  const c=C.hand[i], d=CARDS[c.id];
+  if(d.cost>C.energy){ shake('energy'); return }
+  if(c.id==='kehrwert' && (!C.T||C.T.n===0)) return;
+  C.busy=true; C.energy-=d.cost; C.hand.splice(i,1);
+  let ok=true;
+  if(d.type==='quiz'){ render(); ok=await askQuiz(d.name) }
+  applyCard(c.id,ok);
+  C.discard.push(c);
+  C.busy=false;
+  render();
+  if(C.enemy.hp.cmp(0)<=0) winCombat();
+}
+function applyCard(id,ok){
+  const d=CARDS[id];
+  switch(id){
+    case 'anteil':{ const dmg=C.enemy.hp.mul(d.pct); log(`Anteil: ${disp(d.pct,'pct')} von ${fmt(C.enemy.hp,'mixed')} = ${fmt(dmg,'mixed')} Schaden.`); attack(dmg); break }
+    case 'ergaenzung':{ const dmg=max0(C.T.sub(C.S)); log(`Ergänzung: ${fmt(C.T,'mixed')} ${MINUS} ${fmt(C.S,'mixed')} = ${fmt(dmg,'mixed')} Schaden.`); attack(dmg); break }
+    case 'halbieren': C.halve=true; log('Der nächste Gegnerangriff wird halbiert.'); break;
+    case 'kehrwert':{ const old=C.T; C.T=q(1).div(C.T); log(`Kehrwert: Kern ${fmt(old,'mixed')} → ${fmt(C.T,'mixed')}.`); drawCards(1); checkKern(); break }
+    case 'korrektur': C.S=C.S.sub(q(1,4)); drawCards(1); checkKern(); break;
+    case 'rechenblitz': attack(ok?q(3,2):q(1,4)); break;
+    case 'denkschild': if(ok){gainBlock(q(2));drawCards(1)} else gainBlock(q(1,2)); break;
+    case 'geistesblitz': if(ok){C.energy+=1;drawCards(1)} break;
+    default:
+      if(d.type==='atk') attack(d.val,d.hits||1);
+      else if(d.type==='def') gainBlock(d.val);
+      else if(d.mult){ C.mult=d.mult; log(`Nächster Angriff: ${disp(d.mult,d.style)}-facher Schaden.`) }
+      if(d.draw) drawCards(d.draw);
+  }
+}
+async function endTurn(){
+  if(!C||C.busy) return;
+  C.busy=true;
+  C.discard.push(...C.hand); C.hand=[]; C.mult=null;
+  render(); await sleep(450);
+  enemyAct(); render();
+  if(G.hp.cmp(0)<=0){ await sleep(900); gameOver(); return }
+  await sleep(650);
+  C.busy=false; startPlayerTurn();
+}
+function enemyAct(){
+  const e=C.enemy, it=e.intent;
+  e.block=ZERO;
+  if(it.type==='atk'){
+    let v=it.value, note='';
+    if(C.halve){ v=v.mul(q(1,2)); C.halve=false; note=` · ${fmt(q(1,2))} = ${fmt(v,'mixed')}` }
+    const ab=minQ(C.block,v), dmg=v.sub(ab);
+    C.block=C.block.sub(ab); G.hp=G.hp.sub(dmg);
+    if(dmg.cmp(0)>0){ floatAt('player','−'+fmt(dmg,'mixed'),'dmg'); shake('player') }
+    log(`${e.face} Angriff: ${it.expr} = <b>${fmt(it.value,'mixed')}</b>${note}. Geblockt: ${fmt(ab,'mixed')}, Schaden: <b>${fmt(dmg,'mixed')}</b>.`);
+  } else {
+    e.block=e.block.add(it.value);
+    floatAt('enemy','+'+fmt(it.value,'mixed')+' 🛡','blk');
+    log(`${e.face} Block: ${it.expr} = <b>${fmt(it.value,'mixed')}</b>.`);
+  }
+  e.turn++; e.intent=nextIntent(e);
+}
+async function winCombat(){
+  if(C.won) return; C.won=true; C.busy=true;
+  G.stats.fights++;
+  log(`🏆 ${C.enemy.name} besiegt!`); render();
+  await sleep(900);
+  const boss=C.enemy.boss, elite=C.enemy.elite;
+  C=null;
+  if(boss) return victory();
+  if(elite){ G.hp=minQ(G.maxHp,G.hp.add(q(3))) }
+  rewardScreen(elite);
+}
+
+/* ---------- Effekte ---------- */
+function floatAt(id,html,cls){
+  const el=document.getElementById(id); if(!el) return;
+  const r=el.getBoundingClientRect(), f=document.createElement('div');
+  f.className='float '+cls; f.innerHTML=html;
+  f.style.left=(r.left+r.width/2+rint(-20,20))+'px'; f.style.top=(r.top+r.height*0.3)+'px';
+  document.body.appendChild(f); setTimeout(()=>f.remove(),1150);
+}
+function shake(id){ const el=document.getElementById(id); if(!el) return; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake') }
+
+/* ---------- Darstellung ---------- */
+const $app=()=>document.getElementById('app');
+function topBar(){
+  let prog=''; for(let f=1;f<=MAX_FLOOR;f++) prog+=`<i class="${f<G.floor?'done':f===G.floor?'now':''}" title="Etage ${f}"></i>`;
+  return `<div class="top">
+    <span class="pill">❤️ <b>${fmt(max0(G.hp),'mixed')}</b> / ${fmt(G.maxHp)}</span>
+    <span class="pill">🗼 Etage ${G.floor}/${MAX_FLOOR}</span>
+    <span class="progress">${prog}</span>
+    <span class="sp"></span>
+    <button class="btn" onclick="showDeck()">🂠 Deck (${G.deck.length})</button>
+    <button class="btn" onclick="showRules()">?</button></div>`;
+}
+function render(){
+  if(!C) return;
+  const e=C.enemy, it=e.intent;
+  const ePct=Math.max(0,e.hp.v/e.maxHp.v*100), pPct=Math.max(0,G.hp.v/G.maxHp.v*100);
+  const over=C.S.cmp(C.T)>0 && !C.kernHit;
+  const halvedNote=it.type==='atk'&&C.halve?` <span class="muted">(wird halbiert)</span>`:'';
+  $app().innerHTML=topBar()+`
+  <div class="arena">
+    <div class="fighter" id="player">
+      <div class="face">🧙</div><div class="name">Du</div>
+      <div class="hp"><div style="width:${pPct}%"></div></div>
+      <div class="hptext">${fmt(max0(G.hp),'mixed')} / ${fmt(G.maxHp)} LP</div>
+      <div class="chips">
+        ${C.block.cmp(0)>0?`<span class="chip block">🛡 ${fmt(C.block,'mixed')}</span>`:''}
+        ${C.mult?`<span class="chip">⚔️ × ${disp(C.mult,'dec')}</span>`:''}
+        ${C.halve?`<span class="chip">🔻 Gegner × ${fmt(q(1,2))}</span>`:''}
+      </div>
+    </div>
+    <div class="kern ${C.kernHit?'hit':''} ${over?'over':''}" id="kern">
+      <small>🎯 KERN</small>
+      <div class="t">${fmt(C.T,'mixed')}</div>
+      <div class="s">Σ = ${fmt(C.S,'mixed')}</div>
+      <small>${C.kernHit?'Geknackt! ✨':over?'Überzogen – der Kern ist für diesen Zug verfehlt.':'Spiele Angriffe, deren Summe genau den Kern ergibt: +1 Energie & Bonusschaden.'}</small>
+    </div>
+    <div class="fighter" id="enemy">
+      <div class="face">${e.face}</div><div class="name">${e.name}</div>
+      <div class="hp"><div style="width:${ePct}%"></div></div>
+      <div class="hptext">${fmt(max0(e.hp),'mixed')} / ${fmt(e.maxHp,'mixed')} LP</div>
+      <div class="chips">${e.block.cmp(0)>0?`<span class="chip block">🛡 ${fmt(e.block,'mixed')}</span>`:''}</div>
+      <div class="intent ${it.type==='def'?'def':''}">
+        <small>Absicht – rechne aus!</small>
+        ${it.type==='atk'?'⚔️':'🛡'} ${it.expr}
+        ${G.help?`<span class="reveal"> = ${fmt(it.value,'mixed')}</span>`:''}${halvedNote}
+      </div>
+    </div>
+  </div>
+  <div class="controls">
+    <span class="energy" id="energy">⚡ ${C.energy}</span>
+    <span class="muted">Ziehstapel ${C.draw.length} · Ablage ${C.discard.length}</span>
+    <button class="btn primary" onclick="endTurn()" ${C.busy?'disabled':''}>Zug beenden</button>
+  </div>
+  <div class="hand">${C.hand.map((c,i)=>cardHTML(c.id,`onclick="playCard(${i})"`,CARDS[c.id].cost>C.energy||C.busy)).join('')}</div>
+  <div class="log">${C.log.map(l=>`<div>${l}</div>`).join('')}</div>`;
+}
+
+/* ---------- Weg / Etagen ---------- */
+const NODES={
+  kampf:{icon:'⚔️',name:'Kampf',text:'Ein gewöhnlicher Gegner. Belohnung: eine neue Karte.'},
+  elite:{icon:'💀',name:'Elite',text:'Ein starker Gegner. Belohnung: +3 LP und eine Karte.'},
+  rast: {icon:'🔥',name:'Rastplatz',text:'Heilen oder eine Karte aus dem Deck entfernen.'},
+  raetsel:{icon:'❓',name:'Rätselraum',text:'3 Aufgaben. Jede richtige: +1 LP. Ab 2 richtigen: neue Karte.'},
+};
+function nextFloor(){
+  G.floor++;
+  if(G.floor===MAX_FLOOR){
+    $app().innerHTML=topBar()+`<div class="center"><h2>Die Turmspitze</h2>
+      <p class="muted">Oben wartet ${ENEMIES.boss.face} <b>${ENEMIES.boss.name}</b>.</p>
+      <div class="choices"><button class="choice" onclick="startCombat('boss')"><div class="big">🐲</div><b>Endkampf</b>Viel Erfolg!</button></div></div>`;
+    return;
+  }
+  let types;
+  if(G.floor===1) types=['kampf'];
+  else {
+    const pool=['kampf','kampf','raetsel'];
+    if(G.floor>=3) pool.push('elite','rast');
+    types=[];
+    const n=G.floor%3===0?3:2;
+    for(const t of shuffle(pool)){ if(!types.includes(t)) types.push(t); if(types.length===n) break }
+  }
+  $app().innerHTML=topBar()+`<div class="center"><h2>Etage ${G.floor}: Wähle deinen Weg</h2>
+    <div class="choices">${types.map(t=>`<button class="choice" onclick="enterNode('${t}')"><div class="big">${NODES[t].icon}</div><b>${NODES[t].name}</b><span class="muted">${NODES[t].text}</span></button>`).join('')}</div></div>`;
+}
+function enterNode(t){
+  if(t==='kampf') startCombat(pick(NORMALS));
+  else if(t==='elite') startCombat(pick(ELITES));
+  else if(t==='rast') restScreen();
+  else puzzleRoom();
+}
+function rewardScreen(elite,title){
+  const opts=shuffle(POOL).filter((v,i,a)=>a.indexOf(v)===i).slice(0,3);
+  $app().innerHTML=topBar()+`<div class="center"><h2>${title||'Sieg!'}</h2>
+    ${elite?'<p>❤️ +3 LP</p>':''}<p class="muted">Wähle eine Karte für dein Deck:</p>
+    <div class="hand">${opts.map(id=>cardHTML(id,`onclick="takeCard('${id}')"`)).join('')}</div>
+    <p><button class="btn" onclick="nextFloor()">Überspringen</button></p></div>`;
+}
+function takeCard(id){ G.deck.push(mkCard(id)); nextFloor() }
+function restScreen(){
+  const heal=minQ(q(4),G.maxHp.sub(G.hp));
+  $app().innerHTML=topBar()+`<div class="center"><h2>🔥 Rastplatz</h2>
+    <div class="choices">
+      <button class="choice" onclick="G.hp=G.hp.add(q(4));if(G.hp.cmp(G.maxHp)>0)G.hp=G.maxHp;nextFloor()"><div class="big">💤</div><b>Ausruhen</b><span class="muted">+${fmt(heal,'mixed')} LP</span></button>
+      <button class="choice" onclick="removeScreen()"><div class="big">✂️</div><b>Ausdünnen</b><span class="muted">Entferne eine Karte aus deinem Deck.</span></button>
+    </div></div>`;
+}
+function removeScreen(){
+  $app().innerHTML=topBar()+`<div class="center"><h2>Welche Karte soll weg?</h2>
+    <div class="deckgrid">${G.deck.map(c=>cardHTML(c.id,`onclick="G.deck=G.deck.filter(x=>x.uid!==${c.uid});nextFloor()"`)).join('')}</div>
+    <p><button class="btn" onclick="restScreen()">Zurück</button></p></div>`;
+}
+async function puzzleRoom(){
+  $app().innerHTML=topBar()+`<div class="center"><h2>❓ Rätselraum</h2><p class="muted">Drei Aufgaben warten auf dich …</p></div>`;
+  let right=0;
+  for(let i=1;i<=3;i++){ if(await askQuiz(`Rätsel ${i} von 3`)){ right++; G.hp=minQ(G.maxHp,G.hp.add(q(1))) } }
+  if(right>=2) rewardScreen(false,`${right} von 3 richtig! (+${right} LP)`);
+  else { $app().innerHTML=topBar()+`<div class="center"><h2>${right} von 3 richtig</h2><p>${right?`❤️ +${right} LP`:'Beim nächsten Mal klappt es bestimmt!'}</p>
+    <button class="btn primary" onclick="nextFloor()">Weiter</button></div>` }
+}
+
+/* ---------- Modale Fenster ---------- */
+function modal(html){
+  const root=document.getElementById('modal-root');
+  root.innerHTML=`<div class="modal" onclick="if(event.target===this)this.remove()"><div class="box">${html}
+    <div class="center" style="margin-top:14px"><button class="btn" onclick="document.getElementById('modal-root').innerHTML=''">Schließen</button></div></div></div>`;
+}
+function showDeck(){ modal(`<h3>Dein Deck (${G.deck.length} Karten)</h3><div class="deckgrid">${G.deck.map(c=>cardHTML(c.id,'disabled')).join('')}</div>`) }
+const RULES=`<ul>
+  <li><b>Karten spielen:</b> Jede Karte kostet ⚡ Energie (oben links auf der Karte). Pro Zug hast du 3 Energie und ziehst 5 Karten.</li>
+  <li><b>Absicht des Gegners:</b> Der Gegner zeigt seine nächste Aktion als <b>Rechenausdruck</b>. Rechne aus, wie stark er zuschlägt, und blocke passend!</li>
+  <li><b>Block 🛡</b> fängt Schaden ab und verfällt zu Beginn deines nächsten Zuges.</li>
+  <li><b>🎯 Kern:</b> Jeden Zug gibt es eine Kern-Zahl. Spielst du Angriffe, deren Schaden in der Summe <b>genau</b> den Kern ergibt, bekommst du +1 Energie und 1 Bonusschaden.</li>
+  <li><b>Rechenkarten ❓</b> stellen dir eine Aufgabe. Richtig gelöst wirken sie stark.</li>
+  <li>Erreiche Etage ${MAX_FLOOR} und besiege den Großen Hauptnenner!</li></ul>`;
+function showRules(){ modal(`<h3>So geht's</h3>${RULES}`) }
+
+/* ---------- Start & Ende ---------- */
+let chosenLevel=1;
+const LEVELS=[
+  {n:1,name:'Stufe 1: Brüche',text:'Positive Brüche: vergleichen, kürzen, addieren, subtrahieren, Zahlenstrahl.'},
+  {n:2,name:'Stufe 2: + Dezimal & Prozent',text:'Zusätzlich Dezimalzahlen, Prozent und Multiplikation.'},
+  {n:3,name:'Stufe 3: + negative Zahlen',text:'Alle rationalen Zahlen, auch negative. Mit Division.'},
+];
+function titleScreen(){
+  C=null; document.getElementById('modal-root').innerHTML='';
+  $app().innerHTML=`<div class="center">
+    <div style="font-size:64px;margin-top:10px">🗼</div>
+    <h1>Bruchturm</h1>
+    <p class="muted">Ein Deckbau-Abenteuer mit rationalen Zahlen</p>
+    <div class="levels">${LEVELS.map(l=>`<button class="level ${l.n===chosenLevel?'sel':''}" onclick="chosenLevel=${l.n};titleScreen()"><b>${l.name}</b><br><span class="muted">${l.text}</span></button>`).join('')}</div>
+    <label><input type="checkbox" id="help"> Rechenhilfe: Ergebnis der Gegner-Absichten anzeigen</label>
+    <p><button class="btn primary" style="font-size:1.2rem;padding:.7em 2em" onclick="newRun(chosenLevel,document.getElementById('help').checked)">Aufstieg beginnen</button></p>
+    <div class="rules">${RULES}</div></div>`;
+}
+function statsHTML(){
+  const rows=Object.entries(G.stats.topics).map(([k,t])=>`<tr><td>${TOPIC[k]}</td><td>${t.ok} / ${t.n}</td></tr>`).join('');
+  const all=Object.values(G.stats.topics).reduce((a,t)=>({ok:a.ok+t.ok,n:a.n+t.n}),{ok:0,n:0});
+  return `<div class="stats"><table>
+    <tr><td>Erreichte Etage</td><td>${G.floor} / ${MAX_FLOOR}</td></tr>
+    <tr><td>Gewonnene Kämpfe</td><td>${G.stats.fights}</td></tr>
+    <tr><td>🎯 Kerne geknackt</td><td>${G.stats.kern}</td></tr>
+    <tr><td><b>Aufgaben richtig</b></td><td><b>${all.ok} / ${all.n}</b></td></tr>${rows}</table></div>`;
+}
+function gameOver(){
+  C=null;
+  $app().innerHTML=`<div class="center"><div style="font-size:64px">💫</div><h1>Besiegt …</h1>
+    <p class="muted">Du bist auf Etage ${G.floor} gefallen. Versuch es noch einmal!</p>${statsHTML()}
+    <button class="btn primary" onclick="titleScreen()">Neues Spiel</button></div>`;
+}
+function victory(){
+  $app().innerHTML=`<div class="center"><div style="font-size:64px">🏆</div><h1>Turm bezwungen!</h1>
+    <p>Du hast den Großen Hauptnenner besiegt.</p>${statsHTML()}
+    <button class="btn primary" onclick="titleScreen()">Neues Spiel</button></div>`;
+}
+titleScreen();
+</script>
+</body>
+</html>

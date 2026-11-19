@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bruchturm – Stilentwürfe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Gochi+Hand&family=Cinzel:wght@500;700&family=EB+Garamond:wght@400;600&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#e9e7e1;color:#222;font-family:system-ui,"Segoe UI",sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:16px}
+header.page{padding:10px 0 4px}
+header.page h1{margin:0;font-size:1.6rem}
+header.page p{margin:.3em 0 0;color:#555}
+.label{display:flex;align-items:baseline;gap:12px;margin:34px 0 10px}
+.label .nr{font-weight:800;font-size:1.5rem;background:#222;color:#fff;border-radius:8px;padding:0 10px}
+.label h2{margin:0;font-size:1.3rem}
+.label span{color:#555}
+
+/* gemeinsames Gerüst der Szene */
+.scene{position:relative;border-radius:14px;overflow:hidden;padding:18px 20px 22px}
+.row{display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:16px;align-items:stretch}
+.box{padding:12px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.monster{width:110px;height:100px}
+.bar{width:100%;height:14px}
+.bar>i{display:block;height:100%;width:62%}
+.hand{display:flex;gap:14px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.card{width:128px;height:172px;position:relative;display:flex;flex-direction:column;align-items:center;padding:12px 8px 8px;text-align:center}
+.card .cost{position:absolute;top:-10px;left:-10px;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+.card .v{font-size:2rem;margin:auto 0 6px}
+.card .d{font-size:.78rem}
+.ctrl{display:flex;justify-content:center;gap:16px;align-items:center;margin-top:14px}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.8em;line-height:1.05;margin:0 .05em}
+.fr b{font-weight:inherit;border-bottom:.09em solid currentColor;padding:0 .12em}
+.fr u{text-decoration:none;padding:0 .12em}
+.note{font-size:.95rem;color:#444;margin:10px 2px 0;line-height:1.5}
+
+/* ---------- 1 Pixel ---------- */
+.px{background:#1a1c2c;color:#f4f4f4;font-family:"VT323",monospace;font-size:22px;border-radius:0;
+  box-shadow:0 0 0 4px #000,0 0 0 8px #5d5f78}
+.px .t{font-family:"Press Start 2P",monospace;font-size:11px;letter-spacing:.05em}
+.px .box{background:#29366f;box-shadow:inset 0 0 0 4px #000,inset 0 0 0 7px #3b5dc9}
+.px .kernbox{background:#333c57;box-shadow:inset 0 0 0 4px #000,inset 0 0 0 7px #ffcd75}
+.px .bar{background:#000;padding:3px}.px .bar>i{background:#b13e53}
+.px .intent{background:#000;padding:4px 10px;color:#ffcd75}
+.px .card{background:#f4f4f4;color:#1a1c2c;box-shadow:inset 0 0 0 4px #000,4px 4px 0 #000}
+.px .card.a{background:#ef7d57}.px .card.b{background:#73eff7}.px .card.q{background:#ffcd75}
+.px .cost{background:#1a1c2c;color:#ffcd75;font-family:"Press Start 2P";font-size:12px;box-shadow:0 0 0 3px #000}
+.px .btn{font-family:"Press Start 2P";font-size:11px;background:#38b764;color:#000;padding:10px 14px;box-shadow:inset 0 -4px 0 #257179,0 0 0 3px #000}
+.px .big{font-size:44px;color:#ffcd75;line-height:1}
+
+/* ---------- 2 Kreidetafel ---------- */
+.ch{background:#2f4a3a;color:#f3f1e8;font-family:"Gochi Hand",cursive;font-size:21px;
+  border:14px solid #7a5232;border-radius:6px;
+  background-image:radial-gradient(ellipse at 30% 20%,#ffffff12,transparent 60%),radial-gradient(ellipse at 80% 90%,#ffffff0c,transparent 50%)}
+.ch .box{border:2.5px dashed #f3f1e8b0;border-radius:18px 10px 22px 12px}
+.ch .kernbox{border:3px solid #f6e27a;color:#f6e27a;border-radius:50% 46% 52% 44%/40% 50% 44% 54%}
+.ch .bar{border:2px solid #f3f1e8;border-radius:8px;padding:2px}
+.ch .bar>i{background:repeating-linear-gradient(-45deg,#f08a8a 0 5px,transparent 5px 9px);border-radius:4px}
+.ch .intent{color:#ffb3a7}
+.ch .card{background:#fdfbf3;color:#26303a;border-radius:3px;transform:rotate(-2deg);box-shadow:2px 4px 8px #0006;
+  background-image:repeating-linear-gradient(#fdfbf3 0 23px,#b9d3ea 23px 24px)}
+.ch .card:nth-child(2){transform:rotate(1.5deg)}.ch .card:nth-child(3){transform:rotate(-.5deg)}.ch .card:nth-child(4){transform:rotate(2.5deg)}
+.ch .card::before{content:"";position:absolute;top:-9px;left:40px;width:48px;height:18px;background:#f3e9a8cc;transform:rotate(-4deg)}
+.ch .card.a .v{color:#c0392b}.ch .card.b .v{color:#2463a6}.ch .card.q .v{color:#b07b00}
+.ch .cost{background:#f6e27a;color:#26303a;border-radius:50%;z-index:2}
+.ch .btn{border:2.5px solid #f3f1e8;border-radius:14px 8px 16px 10px;padding:4px 16px}
+.ch .big{font-size:52px;line-height:1}
+.ch .sponge{position:absolute;right:18px;bottom:10px;width:70px;height:16px;background:#d9c27a;border-radius:3px;opacity:.8}
+
+/* ---------- 3 Fantasy-Pergament ---------- */
+.fa{background:#e8d6b0;color:#3b2513;font-family:"EB Garamond",serif;font-size:20px;
+  background-image:radial-gradient(ellipse at center,#f3e6c6 0%,#e2c999 70%,#c9a66b 100%);
+  border:3px solid #6e4a22;box-shadow:inset 0 0 0 6px #e8d6b0,inset 0 0 0 8px #8a6431,inset 0 0 60px #7a4f1f55}
+.fa .t{font-family:"Cinzel",serif;font-weight:700;letter-spacing:.06em}
+.fa .box{background:#f6ecd4cc;border:2px solid #8a6431;border-radius:6px;box-shadow:inset 0 0 0 4px #f6ecd4,inset 0 0 0 5px #b89154}
+.fa .kernbox{background:#3b2513;color:#f1d27a;border-color:#c9a043}
+.fa .bar{background:#3b2513;border:1px solid #c9a043;border-radius:7px;padding:2px}.fa .bar>i{background:linear-gradient(#c4402f,#7d1d14);border-radius:5px}
+.fa .intent{font-style:italic;color:#7d1d14}
+.fa .card{background:linear-gradient(#fbf3de,#ead7a8);border:2px solid #6e4a22;border-radius:10px;
+  box-shadow:inset 0 0 0 4px #fbf3de,inset 0 0 0 5px #b89154,0 6px 10px #5a3a1655}
+.fa .card .n{font-family:"Cinzel";font-weight:700;font-size:.85rem}
+.fa .card.a{border-color:#7d1d14}.fa .card.a .v{color:#7d1d14}
+.fa .card.b{border-color:#24476b}.fa .card.b .v{color:#24476b}
+.fa .card.q{border-color:#8a6a10}.fa .card.q .v{color:#8a6a10}
+.fa .cost{background:radial-gradient(#ffe9a0,#c9a043);border:2px solid #6e4a22;border-radius:50%;font-family:"Cinzel";font-weight:700}
+.fa .btn{font-family:"Cinzel";font-weight:700;background:#7d1d14;color:#f6ecd4;border:2px solid #c9a043;border-radius:4px;padding:8px 16px}
+.fa .big{font-size:48px;font-family:"Cinzel";line-height:1}
+
+/* ---------- 4 Comic-Flat ---------- */
+.co{background:#ffe8a3;color:#1d1d2b;font-family:"Fredoka",sans-serif;font-size:19px;border:4px solid #1d1d2b;
+  background-image:radial-gradient(#f5c94c 1.6px,transparent 1.8px);background-size:16px 16px}
+.co .t{font-weight:700}
+.co .box{background:#fff;border:4px solid #1d1d2b;border-radius:22px;box-shadow:6px 6px 0 #1d1d2b}
+.co .kernbox{background:#7b5cff;color:#fff}
+.co .bar{background:#ececf3;border:3px solid #1d1d2b;border-radius:99px;height:20px}.co .bar>i{background:#ff5d73;border-radius:99px}
+.co .intent{background:#ff5d73;color:#fff;border:3px solid #1d1d2b;border-radius:14px;padding:3px 12px;font-weight:600}
+.co .card{background:#fff;border:4px solid #1d1d2b;border-radius:20px;box-shadow:5px 6px 0 #1d1d2b}
+.co .card .n{font-weight:700}
+.co .card.a{background:#ffd1d7}.co .card.b{background:#c9ecff}.co .card.q{background:#fff1b8}
+.co .card .v{font-weight:700}
+.co .cost{background:#1d1d2b;color:#ffe066;border-radius:50%;font-weight:700;border:3px solid #fff}
+.co .btn{background:#2ec4a6;border:4px solid #1d1d2b;border-radius:16px;padding:8px 18px;font-weight:700;box-shadow:4px 4px 0 #1d1d2b}
+.co .big{font-size:50px;font-weight:700;line-height:1}
+
+@media (max-width:760px){.row{grid-template-columns:1fr 1fr}.row .kernbox{grid-column:1/-1;order:3}.card{width:104px;height:150px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="page">
+  <h1>Bruchturm – vier Stilentwürfe</h1>
+  <p>Dieselbe Kampfszene in vier Stilen: Gegner mit Rechen-Absicht, Kern-Zahl und vier Karten auf der Hand.</p>
+</header>
+
+<!-- 1 PIXEL -->
+<div class="label"><span class="nr">1</span><h2>Pixel-Abenteuer</h2><span>Retro-8-Bit, kräftige Farben, kantige Rahmen</span></div>
+<div class="scene px">
+  <div class="row">
+    <div class="box">
+      <svg class="monster" viewBox="0 0 16 14" shape-rendering="crispEdges">
+        <rect x="6" y="0" width="4" height="2" fill="#a7f070"/><rect x="5" y="2" width="6" height="5" fill="#ffcd75"/>
+        <rect x="6" y="3" width="1" height="1" fill="#000"/><rect x="9" y="3" width="1" height="1" fill="#000"/>
+        <rect x="4" y="7" width="8" height="5" fill="#3b5dc9"/><rect x="2" y="7" width="2" height="4" fill="#ffcd75"/><rect x="12" y="6" width="2" height="5" fill="#94b0c2"/>
+        <rect x="5" y="12" width="2" height="2" fill="#566c86"/><rect x="9" y="12" width="2" height="2" fill="#566c86"/></svg>
+      <div class="t">DU</div>
+      <div class="bar"><i style="width:80%"></i></div>
+      <div>LP 12/15 &nbsp; 🛡 1</div>
+    </div>
+    <div class="box kernbox">
+      <div class="t">KERN</div>
+      <div class="big">1 <span class="fr"><b>1</b><u>2</u></span></div>
+      <div>SUMME = <span class="fr"><b>3</b><u>4</u></span></div>
+    </div>
+    <div class="box">
+      <svg class="monster" viewBox="0 0 16 14" shape-rendering="crispEdges">
+        <rect x="3" y="2" width="10" height="9" fill="#38b764"/><rect x="2" y="4" width="12" height="7" fill="#38b764"/>
+        <rect x="4" y="4" width="3" height="3" fill="#fff"/><rect x="9" y="4" width="3" height="3" fill="#fff"/>
+        <rect x="5" y="5" width="1" height="1" fill="#000"/><rect x="10" y="5" width="1" height="1" fill="#000"/>
+        <rect x="5" y="9" width="6" height="1" fill="#1a1c2c"/><rect x="3" y="11" width="3" height="2" fill="#257179"/><rect x="10" y="11" width="3" height="2" fill="#257179"/></svg>
+      <div class="t">BRUCHLING</div>
+      <div class="bar"><i></i></div>
+      <div>LP 3 <span class="fr"><b>1</b><u>4</u></span> / 5</div>
+      <div class="intent">⚔ <span class="fr"><b>3</b><u>4</u></span> + 0,25</div>
+    </div>
+  </div>
+  <div class="hand">
+    <div class="card a"><div class="cost">1</div><div class="t">STICH</div><div class="v"><span class="fr"><b>1</b><u>2</u></span></div><div class="d">Schaden</div></div>
+    <div class="card a"><div class="cost">1</div><div class="t">SCHNITT</div><div class="v"><span class="fr"><b>3</b><u>4</u></span></div><div class="d">Schaden</div></div>
+    <div class="card b"><div class="cost">1</div><div class="t">DECKUNG</div><div class="v">1</div><div class="d">Block</div></div>
+    <div class="card q"><div class="cost">1</div><div class="t">BLITZ</div><div class="v">?</div><div class="d">Aufgabe lösen</div></div>
+  </div>
+  <div class="ctrl"><span class="t" style="color:#ffcd75">ENERGIE ■■□</span><span class="btn">ZUG ENDE ▶</span></div>
+</div>
+<p class="note"><b>Wirkt:</b> verspielt, „echtes Spiel“, spricht viele Jugendliche an. <b>Aufwand:</b> mittel – Pixel-Figuren lassen sich gut selbst zeichnen. <b>Risiko:</b> kleine Schrift kann bei Brüchen schlechter lesbar sein.</p>
+
+<!-- 2 KREIDE -->
+<div class="label"><span class="nr">2</span><h2>Kreidetafel</h2><span>Handgezeichnet, Klassenzimmer-Gefühl, Karten als Notizzettel</span></div>
+<div class="scene ch">
+  <div class="row">
+    <div class="box">
+      <svg class="monster" viewBox="0 0 110 100" fill="none" stroke="#f3f1e8" stroke-width="3" stroke-linecap="round">
+        <circle cx="55" cy="26" r="15"/><path d="M55 41 L54 72 M54 50 L32 62 M55 50 L80 40 M80 40 L92 18 M54 72 L40 95 M54 72 L68 95"/>
+        <path d="M30 14 L55 2 L80 14" /><circle cx="50" cy="24" r="1.5" fill="#f3f1e8"/><circle cx="60" cy="24" r="1.5" fill="#f3f1e8"/><path d="M49 32 Q55 36 61 32"/></svg>
+      <div>Du</div>
+      <div class="bar"><i style="width:80%"></i></div>
+      <div>12 / 15 LP · 🛡 1</div>
+    </div>
+    <div class="box kernbox">
+      <div>Kern</div>
+      <div class="big">1 <span class="fr"><b>1</b><u>2</u></span></div>
+      <div>Σ = <span class="fr"><b>3</b><u>4</u></span></div>
+    </div>
+    <div class="box">
+      <svg class="monster" viewBox="0 0 110 100" fill="none" stroke="#f3f1e8" stroke-width="3" stroke-linecap="round">
+        <path d="M18 80 Q10 30 55 22 Q100 30 92 80 Q55 92 18 80Z"/><circle cx="40" cy="48" r="9"/><circle cx="70" cy="48" r="9"/>
+        <circle cx="42" cy="50" r="2.5" fill="#f3f1e8"/><circle cx="68" cy="50" r="2.5" fill="#f3f1e8"/><path d="M40 68 L48 64 L55 69 L62 64 L70 68"/>
+        <path d="M35 22 L30 8 M75 22 L80 8"/></svg>
+      <div>Bruchling</div>
+      <div class="bar"><i></i></div>
+      <div>3 <span class="fr"><b>1</b><u>4</u></span> / 5 LP</div>
+      <div class="intent">⚔ <span class="fr"><b>3</b><u>4</u></span> + 0,25 = ?</div>
+    </div>
+  </div>
+  <div class="hand">
+    <div class="card a"><div class="cost">1</div><div>Stich</div><div class="v"><span class="fr"><b>1</b><u>2</u></span></div><div class="d">Schaden</div></div>
+    <div class="card a"><div class="cost">1</div><div>Schnitt</div><div class="v"><span class="fr"><b>3</b><u>4</u></span></div><div class="d">Schaden</div></div>
+    <div class="card b"><div class="cost">1</div><div>Deckung</div><div class="v">1</div><div class="d">Block</div></div>
+    <div class="card q"><div class="cost">1</div><div>Rechenblitz</div><div class="v">?</div><div class="d">Aufgabe lösen</div></div>
+  </div>
+  <div class="ctrl"><span>Energie: ⚡⚡ ○</span><span class="btn">Zug beenden →</span></div>
+  <div class="sponge"></div>
+</div>
+<p class="note"><b>Wirkt:</b> passt sofort zum Matheunterricht, Brüche sehen „wie an der Tafel“ aus. <b>Aufwand:</b> gering – Strichzeichnungen genügen. <b>Risiko:</b> könnte manchen zu sehr nach Schule aussehen.</p>
+
+<!-- 3 FANTASY -->
+<div class="label"><span class="nr">3</span><h2>Fantasy-Pergament</h2><span>Zauberbuch, Gold und Tinte, Karten wie Tarot</span></div>
+<div class="scene fa">
+  <div class="row">
+    <div class="box">
+      <svg class="monster" viewBox="0 0 110 100"><path d="M55 6 L74 40 L36 40Z" fill="#24476b"/><circle cx="55" cy="50" r="13" fill="#e9c9a0" stroke="#3b2513" stroke-width="2"/>
+        <path d="M30 98 Q34 62 55 62 Q76 62 80 98Z" fill="#24476b" stroke="#3b2513" stroke-width="2"/><path d="M84 30 L84 96" stroke="#6e4a22" stroke-width="4"/><circle cx="84" cy="26" r="7" fill="#f1d27a" stroke="#8a6a10" stroke-width="2"/></svg>
+      <div class="t">Die Gelehrte</div>
+      <div class="bar"><i style="width:80%"></i></div>
+      <div>12 / 15 Leben · 🛡 1</div>
+    </div>
+    <div class="box kernbox">
+      <div class="t" style="font-size:.8rem">✦ Der Kern ✦</div>
+      <div class="big">1 <span class="fr"><b>1</b><u>2</u></span></div>
+      <div>Σ = <span class="fr"><b>3</b><u>4</u></span></div>
+    </div>
+    <div class="box">
+      <svg class="monster" viewBox="0 0 110 100"><ellipse cx="55" cy="62" rx="36" ry="28" fill="#5d7a3a" stroke="#3b2513" stroke-width="2.5"/>
+        <path d="M30 42 Q24 14 40 30 M80 42 Q86 14 70 30" stroke="#3b2513" stroke-width="3" fill="#5d7a3a"/>
+        <circle cx="42" cy="56" r="6" fill="#f1d27a" stroke="#3b2513" stroke-width="2"/><circle cx="68" cy="56" r="6" fill="#f1d27a" stroke="#3b2513" stroke-width="2"/>
+        <path d="M40 76 Q55 86 70 76" stroke="#3b2513" stroke-width="2.5" fill="none"/><path d="M47 79 L49 84 L52 80 M58 80 L61 84 L63 79" stroke="#fff" stroke-width="2" fill="none"/></svg>
+      <div class="t">Bruchling</div>
+      <div class="bar"><i></i></div>
+      <div>3 <span class="fr"><b>1</b><u>4</u></span> / 5 Leben</div>
+      <div class="intent">⚔ <span class="fr"><b>3</b><u>4</u></span> + 0,25</div>
+    </div>
+  </div>
+  <div class="hand">
+    <div class="card a"><div class="cost">1</div><div class="n">Stich</div><div class="v"><span class="fr"><b>1</b><u>2</u></span></div><div class="d">Fügt Schaden zu</div></div>
+    <div class="card a"><div class="cost">1</div><div class="n">Schnitt</div><div class="v"><span class="fr"><b>3</b><u>4</u></span></div><div class="d">Fügt Schaden zu</div></div>
+    <div class="card b"><div class="cost">1</div><div class="n">Deckung</div><div class="v">1</div><div class="d">Schutzzauber</div></div>
+    <div class="card q"><div class="cost">1</div><div class="n">Rätselrune</div><div class="v">✧</div><div class="d">Löse das Rätsel</div></div>
+  </div>
+  <div class="ctrl"><span class="t">Mana ◆◆◇</span><span class="btn">Zug beenden</span></div>
+</div>
+<p class="note"><b>Wirkt:</b> am nächsten am Genre-Vorbild, erzählerisch, „ernsthaftes“ Abenteuer. <b>Aufwand:</b> hoch – braucht gute Illustrationen, sonst wirkt es billig. <b>Risiko:</b> Serifenschrift und Ornamente lenken von den Zahlen ab.</p>
+
+<!-- 4 COMIC -->
+<div class="label"><span class="nr">4</span><h2>Comic-Flat</h2><span>Dicke Konturen, knallige Farben, freundliche Monster</span></div>
+<div class="scene co">
+  <div class="row">
+    <div class="box">
+      <svg class="monster" viewBox="0 0 110 100"><circle cx="55" cy="58" r="34" fill="#7b5cff" stroke="#1d1d2b" stroke-width="4"/>
+        <path d="M30 34 L55 4 L80 34Z" fill="#ffe066" stroke="#1d1d2b" stroke-width="4" stroke-linejoin="round"/>
+        <circle cx="44" cy="56" r="7" fill="#fff" stroke="#1d1d2b" stroke-width="3"/><circle cx="66" cy="56" r="7" fill="#fff" stroke="#1d1d2b" stroke-width="3"/>
+        <circle cx="45" cy="57" r="3" fill="#1d1d2b"/><circle cx="67" cy="57" r="3" fill="#1d1d2b"/><path d="M44 74 Q55 82 66 74" stroke="#1d1d2b" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
+      <div class="t">Du</div>
+      <div class="bar"><i style="width:80%"></i></div>
+      <div>12 / 15 · 🛡 1</div>
+    </div>
+    <div class="box kernbox">
+      <div class="t">🎯 Kern</div>
+      <div class="big">1 <span class="fr"><b>1</b><u>2</u></span></div>
+      <div>Σ = <span class="fr"><b>3</b><u>4</u></span></div>
+    </div>
+    <div class="box">
+      <svg class="monster" viewBox="0 0 110 100"><path d="M14 88 Q14 22 55 22 Q96 22 96 88 L84 80 L72 90 L60 80 L48 90 L36 80 L24 90Z" fill="#2ec4a6" stroke="#1d1d2b" stroke-width="4" stroke-linejoin="round"/>
+        <circle cx="55" cy="50" r="14" fill="#fff" stroke="#1d1d2b" stroke-width="4"/><circle cx="58" cy="52" r="6" fill="#1d1d2b"/>
+        <path d="M44 72 L66 72" stroke="#1d1d2b" stroke-width="4" stroke-linecap="round"/></svg>
+      <div class="t">Bruchling</div>
+      <div class="bar"><i></i></div>
+      <div>3 <span class="fr"><b>1</b><u>4</u></span> / 5</div>
+      <div class="intent">⚔ <span class="fr"><b>3</b><u>4</u></span> + 0,25</div>
+    </div>
+  </div>
+  <div class="hand">
+    <div class="card a"><div class="cost">1</div><div class="n">Stich</div><div class="v"><span class="fr"><b>1</b><u>2</u></span></div><div class="d">Schaden</div></div>
+    <div class="card a"><div class="cost">1</div><div class="n">Schnitt</div><div class="v"><span class="fr"><b>3</b><u>4</u></span></div><div class="d">Schaden</div></div>
+    <div class="card b"><div class="cost">1</div><div class="n">Deckung</div><div class="v">1</div><div class="d">Block</div></div>
+    <div class="card q"><div class="cost">1</div><div class="n">Rechenblitz</div><div class="v">?</div><div class="d">Aufgabe lösen</div></div>
+  </div>
+  <div class="ctrl"><span class="t">⚡ 2 / 3</span><span class="btn">Zug beenden</span></div>
+</div>
+<p class="note"><b>Wirkt:</b> freundlich und sehr gut lesbar, ideal für Klasse 5–7. <b>Aufwand:</b> gering bis mittel – einfache Formen, gut skalierbar. <b>Risiko:</b> Ältere könnten es als zu kindlich empfinden.</p>
+</div>
+</body>
+</html>
